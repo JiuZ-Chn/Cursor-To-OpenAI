@@ -104,22 +104,12 @@ function chunkToUtf8String(chunk) {
   return results.join('')
 }
 
-function getRandomIDPro({ size, dictType, customDict }) {
-  let random = '';
-  if (!customDict) {
-    switch (dictType) {
-      case 'alphabet':
-        customDict = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        break;
-      case 'max':
-        customDict = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-';
-        break;
-      default:
-        customDict = '0123456789';
-    }
-  }
-  for (; size--; ) random += customDict[(Math.random() * customDict.length) | 0];
-  return random;
+function generateUUIDHash(input, salt = '') {
+  const hash = crypto.createHash('sha256').update(input + salt).digest('hex');
+  const hash128 = hash.substring(0, 32);
+  const uuid = `${hash128.substring(0, 8)}-${hash128.substring(8, 12)}-${hash128.substring(12, 16)}-${hash128.substring(16, 20)}-${hash128.substring(20, 32)}`;
+
+  return uuid;
 }
 
 function generateHashed64Hex(input, salt = '') {
@@ -164,6 +154,7 @@ function generateCursorChecksum(token) {
 module.exports = {
   generateCursorBody,
   chunkToUtf8String,
-  getRandomIDPro,
+  generateUUIDHash,
+  generateHashed64Hex,
   generateCursorChecksum,
 };
