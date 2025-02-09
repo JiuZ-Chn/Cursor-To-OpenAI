@@ -1,7 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const { v4: uuidv4 } = require('uuid');
-const { generateCursorBody, chunkToUtf8String, generateCursorChecksum } = require('./utils.js');
+const { generateCursorBody, chunkToUtf8String, generateHashed64Hex, generateUUIDHash, generateCursorChecksum } = require('./utils.js');
 const app = express();
 
 app.use(express.json({ limit: '50mb' }));
@@ -28,7 +28,7 @@ app.post('/v1/chat/completions', async (req, res) => {
     if (authToken && authToken.includes('%3A%3A')) {
       authToken = authToken.split('%3A%3A')[1];
     }
-    if (authToken && authToken.includes('::')) {
+    else if (authToken && authToken.includes('::')) {
       authToken = authToken.split('::')[1];
     }
 
@@ -42,12 +42,12 @@ app.post('/v1/chat/completions', async (req, res) => {
       ?? process.env['x-cursor-checksum'] 
       ?? generateCursorChecksum(authToken.trim());
 
-    const sessionid = uuidv4()
-    const clientKey = '???'   // 256-bit hex value, not sure what's that
+    const sessionid = generateUUIDHash(authToken)
+    const clientKey = generateHashed64Hex(authToken)
+    const cursorClientVersion = "0.45.11"
 
-    // Request the CheckFeatureStatus before StreamChat. It may helps to bypass the account ban.
-    // If you remove the await here, it will improve performance, but I'm not sure if it will cause your account to be banned.
-    const checkFeatureStatusResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/CheckFeatureStatus", {
+    // Request the AvailableModels before StreamChat.
+    const availableModelsResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
       method: 'POST',
       headers: {
         'accept-encoding': 'gzip',
@@ -55,16 +55,16 @@ app.post('/v1/chat/completions', async (req, res) => {
         'connect-protocol-version': '1',
         'content-type': 'application/proto',
         'user-agent': 'connect-es/1.6.1',
-        //'x-client-key': clientKey,
+        'x-amzn-trace-id': `Root=${uuidv4()}`,
+        'x-client-key': clientKey,
         'x-cursor-checksum': checksum,
-        'x-cursor-client-version': '0.45.9',
+        'x-cursor-client-version': cursorClientVersion,
         'x-cursor-timezone': 'Asia/Shanghai',
-        'x-ghost-mode': 'false',
-        'x-session-id': sessionid,
+        'x-ghost-mode': 'true',
+        "x-request-id": uuidv4(),
+        "x-session-id": sessionid,
         'Host': 'api2.cursor.sh',
       },
-      // 0x0A 0x1D cppExistingUserMarketingPopup
-      body: Buffer.from('0A1D6370704578697374696E67557365724D61726B6574696E67506F707570', 'hex')
     })
 
     const cursorBody = generateCursorBody(messages, model);
@@ -78,11 +78,11 @@ app.post('/v1/chat/completions', async (req, res) => {
         'content-type': 'application/connect+proto',
         'user-agent': 'connect-es/1.6.1',
         'x-amzn-trace-id': `Root=${uuidv4()}`,
-        //'x-client-key': clientKey,
+        'x-client-key': clientKey,
         'x-cursor-checksum': checksum,
-        'x-cursor-client-version': '0.45.9',
+        'x-cursor-client-version': cursorClientVersion,
         'x-cursor-timezone': 'Asia/Shanghai',
-        'x-ghost-mode': 'false',
+        'x-ghost-mode': 'true',
         'x-request-id': uuidv4(),
         'x-session-id': sessionid,
         'Host': 'api2.cursor.sh',
