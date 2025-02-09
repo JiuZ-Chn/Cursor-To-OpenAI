@@ -16,7 +16,7 @@ function generateCursorBody(messages, modelName) {
   const formattedMessages = nonSystemMessages.map((msg) => ({
     ...msg,
     role: msg.role === 'user' ? 1 : 2,
-    messageId: uuidv4(),
+    messageId: uuidv4()
   }));
 
   const chatBody = {
@@ -55,7 +55,6 @@ function generateCursorBody(messages, modelName) {
 }
 
 function chunkToUtf8String(chunk) {
-
   const results = []
   const buffer = Buffer.from(chunk, 'hex');
 
@@ -65,14 +64,16 @@ function chunkToUtf8String(chunk) {
       const dataLength = parseInt(buffer.subarray(i + 1, i + 5).toString('hex'), 16)
       const data = buffer.subarray(i + 5, i + 5 + dataLength)
 
-      if(magicNumber == 0) {
+      // Text proto message
+      if (magicNumber == 0) {
         const resMessage = $root.ResMessage.decode(data);
         const content = resMessage.content
         if(content !== undefined)
           results.push(content)
         //console.log(content)
       }
-      if(magicNumber == 1) {
+      // Gzip proto message
+      else if (magicNumber == 1) {
         const gunzipData = zlib.gunzipSync(data)
         const resMessage = $root.ResMessage.decode(gunzipData);
         const content = resMessage.content
@@ -82,44 +83,34 @@ function chunkToUtf8String(chunk) {
         // The prompt is not empty, but skip to handle this here.
         const prompt = resMessage.prompt
       }
-      else { 
-        // Maybe error message
+      // Json message
+      else if (magicNumber == 2) { 
         const message = data.toString('utf-8')
         //console.log(message)
+      } 
+      // Gzip json message
+      else if (magicNumber == 3) {
+        //
+      }
+      else {
+        console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
       }
 
       i += 5 + dataLength - 1
     }
   } catch (err) {
-    try {
-      if (results.length == 0) {
-        const message = zlib.gunzipSync(chunk.subarray(5)).toString('utf-8')
-        results.push(message)
-      }  
-    } catch(err){
-      //
-    }
+    //
   }
 
   return results.join('')
 }
 
-function getRandomIDPro({ size, dictType, customDict }) {
-  let random = '';
-  if (!customDict) {
-    switch (dictType) {
-      case 'alphabet':
-        customDict = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        break;
-      case 'max':
-        customDict = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-';
-        break;
-      default:
-        customDict = '0123456789';
-    }
-  }
-  for (; size--; ) random += customDict[(Math.random() * customDict.length) | 0];
-  return random;
+function generateUUIDHash(input, salt = '') {
+  const hash = crypto.createHash('sha256').update(input + salt).digest('hex');
+  const hash128 = hash.substring(0, 32);
+  const uuid = `${hash128.substring(0, 8)}-${hash128.substring(8, 12)}-${hash128.substring(12, 16)}-${hash128.substring(16, 20)}-${hash128.substring(20, 32)}`;
+
+  return uuid;
 }
 
 function generateHashed64Hex(input, salt = '') {
@@ -164,6 +155,7 @@ function generateCursorChecksum(token) {
 module.exports = {
   generateCursorBody,
   chunkToUtf8String,
-  getRandomIDPro,
+  generateUUIDHash,
+  generateHashed64Hex,
   generateCursorChecksum,
 };
