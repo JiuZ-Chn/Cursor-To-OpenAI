@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+message ChatMessage {
+  message UserMessage {
+    string content = 1;
+    int32 role = 2;
+    string messageId = 13;
+  }
+
+  message Instructions {
+    string instruction = 1;
+  }
+
+  message Model {
+    string name = 1;
+    bytes empty = 4;
+  }
+
+  repeated UserMessage userMessages = 2;
+  Instructions instructions = 4;
+  Model model = 7;
+  int32 unknown13 = 13;
+  string conversationId = 15;
+  int32 unknown16 = 16;
+  int32 unknown29 = 29;
+  int32 unknown31 = 31;
+}
+
+message ResMessage {
+  string content = 1;
+  bytes empty = 4;
+  string prompt = 5;
+}
