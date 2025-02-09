@@ -94,7 +94,7 @@ function chunkToUtf8String(chunk) {
         // Gzip json message
       }
       else {
-        console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
+        //console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
       }
 
       i += 5 + dataLength - 1
