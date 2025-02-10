@@ -15,8 +15,8 @@
     "uuid": "11.0.5"
   },
   "scripts": {
-    "proto": "npx pbjs -t static-module -w commonjs -o proto/message.js proto/message.proto",
-    "start": "node app.js"
+    "proto": "npx pbjs -t static-module -w commonjs -o src/proto/message.js src/proto/message.proto",
+    "start": "node src/app.js"
 
   },
   "devDependencies": {
