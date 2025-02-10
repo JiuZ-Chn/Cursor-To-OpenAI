@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const zlib = require('zlib');
-const $root = require('./message.js');
+const $root = require('../proto/message.js');
 const crypto = require('crypto');
 
 const regex = /<\|BEGIN_SYSTEM\|>.*?<\|END_SYSTEM\|>.*?<\|BEGIN_USER\|>.*?<\|END_USER\|>/s;
@@ -57,23 +57,25 @@ function generateCursorBody(messages, modelName) {
 function chunkToUtf8String(chunk) {
   const results = []
   const buffer = Buffer.from(chunk, 'hex');
+  //console.log("Chunk buffer:", buffer.toString('hex'))
 
   try {
     for(let i = 0; i < buffer.length; i++){
       const magicNumber = parseInt(buffer.subarray(i, i + 1).toString('hex'), 16)
       const dataLength = parseInt(buffer.subarray(i + 1, i + 5).toString('hex'), 16)
       const data = buffer.subarray(i + 5, i + 5 + dataLength)
+      //console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
 
-      // Text proto message
       if (magicNumber == 0) {
+        // Text proto message
         const resMessage = $root.ResMessage.decode(data);
         const content = resMessage.content
         if(content !== undefined)
           results.push(content)
         //console.log(content)
       }
-      // Gzip proto message
       else if (magicNumber == 1) {
+        // Gzip proto message
         const gunzipData = zlib.gunzipSync(data)
         const resMessage = $root.ResMessage.decode(gunzipData);
         const content = resMessage.content
@@ -83,17 +85,16 @@ function chunkToUtf8String(chunk) {
         // The prompt is not empty, but skip to handle this here.
         const prompt = resMessage.prompt
       }
-      // Json message
       else if (magicNumber == 2) { 
+        // Json message
         const message = data.toString('utf-8')
         //console.log(message)
       } 
-      // Gzip json message
       else if (magicNumber == 3) {
-        //
+        // Gzip json message
       }
       else {
-        console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
+        //console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
       }
 
       i += 5 + dataLength - 1
