@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const { v4: uuidv4, v5: uuidv5 } = require('uuid');
-const { generateCursorBody, chunkToUtf8String, generateHashed64Hex, generateCursorChecksum, getMacAddresses } = require('../utils/utils.js');
+const { generateCursorBody, chunkToUtf8String, generateHashed64Hex, generateCursorChecksum } = require('../utils/utils.js');
+const e = require('express');
 
 router.post('/chat/completions', async (req, res) => {
   // o1开头的模型，不支持流式输出
@@ -37,11 +38,8 @@ router.post('/chat/completions', async (req, res) => {
       ?? process.env['x-cursor-checksum'] 
       ?? generateCursorChecksum(authToken.trim());
 
-    const DNS_NAMESPACE_V5 = uuidv5.DNS;
-    const MacAddress = getMacAddresses()[0].mac
-
-    const sessionid = uuidv5(authToken, DNS_NAMESPACE_V5);
-    const clientKey = generateHashed64Hex(MacAddress)
+    const sessionid = uuidv5(authToken,  uuidv5.DNS);
+    const clientKey = generateHashed64Hex(authToken)
     const cursorClientVersion = "0.45.11"
 
     // Request the AvailableModels before StreamChat.
