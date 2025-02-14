@@ -1,7 +1,8 @@
-const { v4: uuidv4 } = require('uuid');
+const os = require('os');
 const zlib = require('zlib');
-const $root = require('../proto/message.js');
 const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
+const $root = require('../proto/message.js');
 
 const regex = /<\|BEGIN_SYSTEM\|>.*?<\|END_SYSTEM\|>.*?<\|BEGIN_USER\|>.*?<\|END_USER\|>/s;
 
@@ -120,6 +121,21 @@ function generateHashed64Hex(input, salt = '') {
   return hash.digest('hex');
 }
 
+function getMacAddresses() {
+  const nets = os.networkInterfaces();
+  const results = [];
+
+  for (const interfaceName in nets) {
+    for (const net of nets[interfaceName]) {
+      if (!net.internal && net.mac && net.mac !== '00:00:00:00:00:00') {
+        results.push({ interface: interfaceName, mac: net.mac });
+      }
+    }
+  }
+
+  return results.sort((a, b) => a.interface.localeCompare(b.interface));
+}
+
 function obfuscateBytes(byteArray) {
   let t = 165;
   for (let r = 0; r < byteArray.length; r++) {
@@ -156,7 +172,7 @@ function generateCursorChecksum(token) {
 module.exports = {
   generateCursorBody,
   chunkToUtf8String,
-  generateUUIDHash,
   generateHashed64Hex,
   generateCursorChecksum,
+  getMacAddresses
 };
