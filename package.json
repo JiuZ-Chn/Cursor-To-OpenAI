@@ -8,6 +8,7 @@
   "url": "https://github.com/JiuZ-Chn/Cursor-To-OpenAI",
   "license": "MIT",
   "dependencies": {
+    "node-fetch": "^2.6.1",
     "dotenv": "^16.4.7",
     "express": "4.21.2",
     "morgan": "^1.10.0",
