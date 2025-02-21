@@ -31,3 +31,14 @@ message ResMessage {
   bytes empty = 4;
   string prompt = 5;
 }
+
+message AvailableModelsResponse { 
+		message AvailableModel {
+			string name = 1;
+			bool default_on = 2;
+			optional bool is_long_context_only = 3;
+			optional bool is_chat_only = 4;
+		}
+	repeated AvailableModel models = 2;
+	repeated string model_names = 1;
+}
