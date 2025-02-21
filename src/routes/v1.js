@@ -1,9 +1,61 @@
 const express = require('express');
 const router = express.Router();
 
+const $root = require('../proto/message.js');
 const { v4: uuidv4, v5: uuidv5 } = require('uuid');
 const { generateCursorBody, chunkToUtf8String, generateHashed64Hex, generateCursorChecksum } = require('../utils/utils.js');
-const e = require('express');
+
+router.get("/models", async (req, res) => {
+  try{
+    let bearerToken = req.headers.authorization?.replace('Bearer ', '');
+    let authToken = bearerToken.split(',').map((key) => key.trim())[0];
+    if (authToken && authToken.includes('%3A%3A')) {
+      authToken = authToken.split('%3A%3A')[1];
+    }
+    else if (authToken && authToken.includes('::')) {
+      authToken = authToken.split('::')[1];
+    }
+
+    const checksum = req.headers['x-cursor-checksum'] 
+      ?? process.env['x-cursor-checksum'] 
+      ?? generateCursorChecksum(authToken.trim());
+
+    const availableModelsResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
+      method: 'POST',
+      headers: {
+        'accept-encoding': 'gzip',
+        'authorization': `Bearer ${authToken}`,
+        'connect-protocol-version': '1',
+        'content-type': 'application/proto',
+        'user-agent': 'connect-es/1.6.1',
+        'x-cursor-checksum': checksum,
+        'x-cursor-timezone': 'Asia/Shanghai',
+        'x-ghost-mode': 'true',
+        'Host': 'api2.cursor.sh',
+      },
+    })
+
+    const data = await availableModelsResponse.arrayBuffer();
+    const buffer = Buffer.from(data);
+    const models = $root.AvailableModelsResponse.decode(buffer).models;
+
+    return res.json({
+      object: "list",
+      data: models.map(model => ({
+        id: model.name,
+        created: Date.now(),
+        object: 'model',
+        owned_by: 'cursor'
+      }))
+    })
+  }
+  catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+    });
+  }
+})
 
 router.post('/chat/completions', async (req, res) => {
   // o1开头的模型，不支持流式输出
