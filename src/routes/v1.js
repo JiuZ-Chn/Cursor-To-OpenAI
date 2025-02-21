@@ -19,6 +19,7 @@ router.get("/models", async (req, res) => {
     const checksum = req.headers['x-cursor-checksum'] 
       ?? process.env['x-cursor-checksum'] 
       ?? generateCursorChecksum(authToken.trim());
+    const cursorClientVersion = "0.45.11"
 
     const availableModelsResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
       method: 'POST',
@@ -29,6 +30,7 @@ router.get("/models", async (req, res) => {
         'content-type': 'application/proto',
         'user-agent': 'connect-es/1.6.1',
         'x-cursor-checksum': checksum,
+        'x-cursor-client-version': cursorClientVersion,
         'x-cursor-timezone': 'Asia/Shanghai',
         'x-ghost-mode': 'true',
         'Host': 'api2.cursor.sh',
