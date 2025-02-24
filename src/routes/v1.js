@@ -36,23 +36,27 @@ router.get("/models", async (req, res) => {
         'Host': 'api2.cursor.sh',
       },
     })
-
     const data = await availableModelsResponse.arrayBuffer();
     const buffer = Buffer.from(data);
-    const models = $root.AvailableModelsResponse.decode(buffer).models;
+    try{
+      const models = $root.AvailableModelsResponse.decode(buffer).models;
 
-    return res.json({
-      object: "list",
-      data: models.map(model => ({
-        id: model.name,
-        created: Date.now(),
-        object: 'model',
-        owned_by: 'cursor'
-      }))
-    })
+      return res.json({
+        object: "list",
+        data: models.map(model => ({
+          id: model.name,
+          created: Date.now(),
+          object: 'model',
+          owned_by: 'cursor'
+        }))
+      })
+    } catch (error) {
+      const text = buffer.toString('utf-8');
+      throw new Error(text);      
+    }
   }
   catch (error) {
-    console.error('Error:', error);
+    console.error(error);
     return res.status(500).json({
       error: 'Internal server error',
     });
