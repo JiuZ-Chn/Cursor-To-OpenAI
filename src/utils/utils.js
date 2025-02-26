@@ -88,9 +88,13 @@ function chunkToUtf8String(chunk) {
       }
       else if (magicNumber == 2) { 
         // Json message
-        const message = data.toString('utf-8')
-        //console.log(message)
-      } 
+        const utf8 = data.toString('utf-8')
+        const message = JSON.parse(utf8)
+        if (message != null && (typeof message !== 'object' || 
+          (Array.isArray(message) ? data.length > 0 : Object.keys(message).length > 0))){
+            console.error(utf8)
+        }      
+      }
       else if (magicNumber == 3) {
         // Gzip json message
       }
