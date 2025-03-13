@@ -10,6 +10,8 @@ env:
   MINOR: 0
   PATCH: ${{github.run_number}}
 
+run-name: Publish Docker Image v1.0.${{github.run_number}}
+
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
@@ -41,6 +43,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
+            type=semver,pattern={{raw}}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=v${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.PATCH }}
 

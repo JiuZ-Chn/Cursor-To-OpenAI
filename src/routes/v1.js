@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { fetch, ProxyAgent, Agent } = require('undici');
 
-const $root = require('../proto/message.js');
 const { v4: uuidv4, v5: uuidv5 } = require('uuid');
+const config = require('../config/config');
+const $root = require('../proto/message.js');
 const { generateCursorBody, chunkToUtf8String, generateHashed64Hex, generateCursorChecksum } = require('../utils/utils.js');
 
 router.get("/models", async (req, res) => {
@@ -16,10 +18,9 @@ router.get("/models", async (req, res) => {
       authToken = authToken.split('::')[1];
     }
 
-    const checksum = req.headers['x-cursor-checksum'] 
-      ?? process.env['x-cursor-checksum'] 
+    const cursorChecksum = req.headers['x-cursor-checksum'] 
       ?? generateCursorChecksum(authToken.trim());
-    const cursorClientVersion = "0.45.11"
+    const cursorClientVersion = "0.46.11"
 
     const availableModelsResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
       method: 'POST',
@@ -29,8 +30,9 @@ router.get("/models", async (req, res) => {
         'connect-protocol-version': '1',
         'content-type': 'application/proto',
         'user-agent': 'connect-es/1.6.1',
-        'x-cursor-checksum': checksum,
+        'x-cursor-checksum': cursorChecksum,
         'x-cursor-client-version': cursorClientVersion,
+        'x-cursor-config-version': uuidv4(),
         'x-cursor-timezone': 'Asia/Shanghai',
         'x-ghost-mode': 'true',
         'Host': 'api2.cursor.sh',
@@ -64,20 +66,19 @@ router.get("/models", async (req, res) => {
 })
 
 router.post('/chat/completions', async (req, res) => {
-  // o1开头的模型，不支持流式输出
-  if (req.body.model.startsWith('o1-') && req.body.stream) {
-    return res.status(400).json({
-      error: 'Model not supported stream',
-    });
-  }
 
   try {
     const { model, messages, stream = false } = req.body;
     let bearerToken = req.headers.authorization?.replace('Bearer ', '');
     const keys = bearerToken.split(',').map((key) => key.trim());
-
     // Randomly select one key to use
     let authToken = keys[Math.floor(Math.random() * keys.length)]
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0 || !authToken) {
+      return res.status(400).json({
+        error: 'Invalid request. Messages should be a non-empty array and authorization is required',
+      });
+    }
 
     if (authToken && authToken.includes('%3A%3A')) {
       authToken = authToken.split('%3A%3A')[1];
@@ -86,22 +87,17 @@ router.post('/chat/completions', async (req, res) => {
       authToken = authToken.split('::')[1];
     }
 
-    if (!messages || !Array.isArray(messages) || messages.length === 0 || !authToken) {
-      return res.status(400).json({
-        error: 'Invalid request. Messages should be a non-empty array and authorization is required',
-      });
-    }
 
-    const checksum = req.headers['x-cursor-checksum'] 
-      ?? process.env['x-cursor-checksum'] 
+    const cursorChecksum = req.headers['x-cursor-checksum']
       ?? generateCursorChecksum(authToken.trim());
 
     const sessionid = uuidv5(authToken,  uuidv5.DNS);
     const clientKey = generateHashed64Hex(authToken)
-    const cursorClientVersion = "0.45.11"
+    const cursorClientVersion = "0.46.11"
+    const cursorConfigVersion = uuidv4();
 
     // Request the AvailableModels before StreamChat.
-    const availableModelsResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
+    const availableModelsResponse = fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
       method: 'POST',
       headers: {
         'accept-encoding': 'gzip',
@@ -111,8 +107,9 @@ router.post('/chat/completions', async (req, res) => {
         'user-agent': 'connect-es/1.6.1',
         'x-amzn-trace-id': `Root=${uuidv4()}`,
         'x-client-key': clientKey,
-        'x-cursor-checksum': checksum,
+        'x-cursor-checksum': cursorChecksum,
         'x-cursor-client-version': cursorClientVersion,
+        'x-cursor-config-version': cursorConfigVersion,
         'x-cursor-timezone': 'Asia/Shanghai',
         'x-ghost-mode': 'true',
         "x-request-id": uuidv4(),
@@ -120,9 +117,12 @@ router.post('/chat/completions', async (req, res) => {
         'Host': 'api2.cursor.sh',
       },
     })
-
+    
     const cursorBody = generateCursorBody(messages, model);
-    const response = await fetch('https://api2.cursor.sh/aiserver.v1.AiService/StreamChat', {
+    const dispatcher = config.proxy.enabled
+      ? new ProxyAgent(config.proxy.url, { allowH2: true })
+      : new Agent({ allowH2: true });
+    const response = await fetch('https://api2.cursor.sh/aiserver.v1.ChatService/StreamUnifiedChatWithTools', {
       method: 'POST',
       headers: {
         'authorization': `Bearer ${authToken}`,
@@ -133,20 +133,28 @@ router.post('/chat/completions', async (req, res) => {
         'user-agent': 'connect-es/1.6.1',
         'x-amzn-trace-id': `Root=${uuidv4()}`,
         'x-client-key': clientKey,
-        'x-cursor-checksum': checksum,
+        'x-cursor-checksum': cursorChecksum,
         'x-cursor-client-version': cursorClientVersion,
+        'x-cursor-config-version': cursorConfigVersion,
         'x-cursor-timezone': 'Asia/Shanghai',
         'x-ghost-mode': 'true',
         'x-request-id': uuidv4(),
         'x-session-id': sessionid,
-        'Host': 'api2.cursor.sh',
+        'Host': 'api2.cursor.sh'
       },
       body: cursorBody,
+      dispatcher: dispatcher,
       timeout: {
         connect: 5000,
         read: 30000
       }
     });
+
+    if (response.status !== 200) {
+      return res.status(response.status).json({ 
+        error: response.statusText 
+      });
+    }
 
     if (stream) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -165,15 +173,13 @@ router.post('/chat/completions', async (req, res) => {
                 id: responseId,
                 object: 'chat.completion.chunk',
                 created: Math.floor(Date.now() / 1000),
-                model: req.body.model,
-                choices: [
-                  {
-                    index: 0,
-                    delta: {
-                      content: text,
-                    },
+                model: model,
+                choices: [{
+                  index: 0,
+                  delta: {
+                    content: text,
                   },
-                ],
+                }],
               })}\n\n`
             );
           }
@@ -190,21 +196,19 @@ router.post('/chat/completions', async (req, res) => {
         res.end();
       }
     } else {
+      // Non-streaming response
       try {
         let text = '';
         for await (const chunk of response.body) {
           text += chunkToUtf8String(chunk);
         }
-        // 对解析后的字符串进行进一步处理
-        text = text.replace(/^.*<\|END_USER\|>/s, '');
-        text = text.replace(/^\n[a-zA-Z]?/, '').trim();
-        // console.log(text)
+
 
         return res.json({
           id: `chatcmpl-${uuidv4()}`,
           object: 'chat.completion',
           created: Math.floor(Date.now() / 1000),
-          model,
+          model: model,
           choices: [
             {
               index: 0,
