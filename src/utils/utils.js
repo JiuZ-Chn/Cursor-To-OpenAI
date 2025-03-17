@@ -4,44 +4,76 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const $root = require('../proto/message.js');
 
-const regex = /<\|BEGIN_SYSTEM\|>.*?<\|END_SYSTEM\|>.*?<\|BEGIN_USER\|>.*?<\|END_USER\|>/s;
-
 function generateCursorBody(messages, modelName) {
 
-  const systemMessages = messages
-    .filter((msg) => msg.role === 'system');
-  const instruction = systemMessages.map((msg) => msg.content).join('\n')
+  const instruction = messages
+    .filter(msg => msg.role === 'system')
+    .map(msg => msg.content)
+    .join('\n')
 
-  const nonSystemMessages = messages
-    .filter((msg) => msg.role !== 'system');
-  const formattedMessages = nonSystemMessages.map((msg) => ({
-    ...msg,
-    role: msg.role === 'user' ? 1 : 2,
-    messageId: uuidv4()
-  }));
+  const formattedMessages = messages
+    .filter(msg => msg.role !== 'system')
+    .map(msg => ({
+      content: msg.content,
+      role: msg.role === 'user' ? 1 : 2,
+      messageId: uuidv4(),
+      ...(msg.role !== 'user' ? { summaryId: uuidv4() } : {})
+    }));
 
-  const chatBody = {
-    userMessages: formattedMessages,
-    instructions: {
-      instruction: "Alway respond in 中文.\n" + instruction
-    },
-    model: {
-      name: modelName,
-      empty: '',
-    },
-    unknown13: 1,
-    conversationId: uuidv4(),
-    unknown16: 1,
-    unknown29: 1,
-    unknown31: 0,
+  const messageIds = formattedMessages.map(msg => {
+    const { role, messageId, summaryId } = msg;
+    return summaryId ? { role, messageId, summaryId } : { role, messageId };
+  });
+
+  const body = {
+    request:{
+      messages: formattedMessages,
+      unknown2: 1,
+      instruction: {
+        instruction: instruction
+      },
+      unknown4: 1,
+      model: {
+        name: modelName,
+        empty: '',
+      },
+      unknown13: 1,
+      cursorSetting: {
+        name: "",
+        unknown3: "",
+        unknown6: {
+          unknwon1: "",
+          unknown2: ""
+        },
+        unknown8: 1,
+        unknown9: 1
+      },
+      unknown19: 1,
+      unknown22: 1,
+      conversationId: uuidv4(),
+      metadata: {
+        os: "win32",
+        arch: "x64",
+        version: "10.0.22631",
+        path: "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+        timestamp: new Date().toISOString(),
+      },
+      unknown29: "",
+      messageIds: messageIds,
+      unknown35: 1,
+      unknown38: 0,
+      unknown46: 1,
+      unknown47: "",
+      unknown48: 1
+    }
   };
 
-  const errMsg = $root.ChatMessage.verify(chatBody);
+  const errMsg = $root.StreamUnifiedChatWithToolsRequest.verify(body);
   if (errMsg) throw Error(errMsg);
-  const chatMessageInstance = $root.ChatMessage.create(chatBody);
-  let buffer = $root.ChatMessage.encode(chatMessageInstance).finish();
+  const instance = $root.StreamUnifiedChatWithToolsRequest.create(body);
+  let buffer = $root.StreamUnifiedChatWithToolsRequest.encode(instance).finish();
   let magicNumber = 0x00
-  if (formattedMessages.length >= 5){
+  if (formattedMessages.length >= 3){
     buffer = zlib.gzipSync(buffer)
     magicNumber = 0x01
   }
@@ -67,36 +99,24 @@ function chunkToUtf8String(chunk) {
       const data = buffer.subarray(i + 5, i + 5 + dataLength)
       //console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
 
-      if (magicNumber == 0) {
-        // Text proto message
-        const resMessage = $root.ResMessage.decode(data);
-        const content = resMessage.content
+      if (magicNumber == 0 || magicNumber == 1) {
+        const gunzipData = magicNumber == 0 ? data : zlib.gunzipSync(data)
+        const message = $root.StreamUnifiedChatWithToolsResponse.decode(gunzipData);
+        const content = message.message.content
         if(content !== undefined)
           results.push(content)
         //console.log(content)
       }
-      else if (magicNumber == 1) {
-        // Gzip proto message
-        const gunzipData = zlib.gunzipSync(data)
-        const resMessage = $root.ResMessage.decode(gunzipData);
-        const content = resMessage.content
-        if(content !== undefined)
-          results.push(content)
-        //console.log(content)
-        // The prompt is not empty, but skip to handle this here.
-        const prompt = resMessage.prompt
-      }
-      else if (magicNumber == 2) { 
+      else if (magicNumber == 2 || magicNumber == 3) { 
         // Json message
-        const utf8 = data.toString('utf-8')
+        const gunzipData = magicNumber == 2 ? data : zlib.gunzipSync(data)
+        const utf8 = gunzipData.toString('utf-8')
         const message = JSON.parse(utf8)
         if (message != null && (typeof message !== 'object' || 
           (Array.isArray(message) ? message.length > 0 : Object.keys(message).length > 0))){
+            results.push(utf8)
             console.error(utf8)
-        }      
-      }
-      else if (magicNumber == 3) {
-        // Gzip json message
+        }
       }
       else {
         //console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
@@ -109,14 +129,6 @@ function chunkToUtf8String(chunk) {
   }
 
   return results.join('')
-}
-
-function generateUUIDHash(input, salt = '') {
-  const hash = crypto.createHash('sha256').update(input + salt).digest('hex');
-  const hash128 = hash.substring(0, 32);
-  const uuid = `${hash128.substring(0, 8)}-${hash128.substring(8, 12)}-${hash128.substring(12, 16)}-${hash128.substring(16, 20)}-${hash128.substring(20, 32)}`;
-
-  return uuid;
 }
 
 function generateHashed64Hex(input, salt = '') {
@@ -135,11 +147,9 @@ function obfuscateBytes(byteArray) {
 }
 
 function generateCursorChecksum(token) {
-  // 生成machineId和macMachineId
   const machineId = generateHashed64Hex(token, 'machineId');
   const macMachineId = generateHashed64Hex(token, 'macMachineId');
 
-  // 获取时间戳并转换为字节数组
   const timestamp = Math.floor(Date.now() / 1e6);
   const byteArray = new Uint8Array([
     (timestamp >> 40) & 255,
@@ -150,11 +160,9 @@ function generateCursorChecksum(token) {
     255 & timestamp,
   ]);
 
-  // 混淆字节数组并进行base64编码
   const obfuscatedBytes = obfuscateBytes(byteArray);
   const encodedChecksum = Buffer.from(obfuscatedBytes).toString('base64');
 
-  // 组合最终的checksum
   return `${encodedChecksum}${machineId}/${macMachineId}`;
 }
 
