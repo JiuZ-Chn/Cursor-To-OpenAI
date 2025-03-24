@@ -17,7 +17,7 @@ function generateCursorBody(messages, modelName) {
       content: msg.content,
       role: msg.role === 'user' ? 1 : 2,
       messageId: uuidv4(),
-      ...(msg.role !== 'user' ? { summaryId: uuidv4() } : {})
+      //...(msg.role !== 'user' ? { summaryId: uuidv4() } : {})
     }));
 
   const messageIds = formattedMessages.map(msg => {
@@ -37,9 +37,10 @@ function generateCursorBody(messages, modelName) {
         name: modelName,
         empty: '',
       },
+      webTool: "",
       unknown13: 1,
       cursorSetting: {
-        name: "",
+        name: "cursor\\aisettings",
         unknown3: "",
         unknown6: {
           unknwon1: "",
@@ -49,7 +50,7 @@ function generateCursorBody(messages, modelName) {
         unknown9: 1
       },
       unknown19: 1,
-      unknown22: 1,
+      //unknown22: 1,
       conversationId: uuidv4(),
       metadata: {
         os: "win32",
@@ -58,13 +59,17 @@ function generateCursorBody(messages, modelName) {
         path: "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
         timestamp: new Date().toISOString(),
       },
-      unknown29: "",
+      unknown27: 0,
+      //unknown29: "",
       messageIds: messageIds,
-      unknown35: 1,
+      largeContext: 1,
       unknown38: 0,
-      unknown46: 1,
+      chatMode: 1,
       unknown47: "",
-      unknown48: 1
+      unknown48: 0,
+      unknown49: 0,
+      unknown50: 1,
+      unknown51: 0
     }
   };
 
@@ -97,7 +102,7 @@ function chunkToUtf8String(chunk) {
       const magicNumber = parseInt(buffer.subarray(i, i + 1).toString('hex'), 16)
       const dataLength = parseInt(buffer.subarray(i + 1, i + 5).toString('hex'), 16)
       const data = buffer.subarray(i + 5, i + 5 + dataLength)
-      //console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
+      console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
 
       if (magicNumber == 0 || magicNumber == 1) {
         const gunzipData = magicNumber == 0 ? data : zlib.gunzipSync(data)
