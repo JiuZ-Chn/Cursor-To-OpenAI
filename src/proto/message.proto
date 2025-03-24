@@ -18,6 +18,9 @@ message MessageSummary {
   string previousSummaryId = 4; 
 }
 
+message MessageThinking {
+  string content = 1;
+}
 message StreamUnifiedChatWithToolsRequest {
   message Request {
     message Message {
@@ -33,8 +36,11 @@ message StreamUnifiedChatWithToolsRequest {
       int32 role = 2;
       Image image = 10;
       string messageId = 13;
+      string unknown29 = 29; // 1, only for user message
       string summaryId = 32;
       MessageSummary summary = 39;
+      MessageThinking thinking = 45;
+      int32 chatMode = 47; // 1 for ask, 2 for agent, 3 for edit
     }
     message Instruction {
       string instruction = 1;
@@ -72,19 +78,25 @@ message StreamUnifiedChatWithToolsRequest {
     Instruction instruction = 3;
     int32 unknown4 = 4; // 1
     Model model = 5;
+    repeated string wikiTool = 7; // one url one item
+    string webTool = 8; // "full search"
     int32 unknown13 = 13;
     CursorSetting cursorSetting = 15;
     int32 unknown19 = 19; // 1
     int32 unknown22 = 22; // 1
     string conversationId = 23; // uuid
     Metadata metadata = 26;
+    int32 unknown27 = 27; // 1
     string unknown29 = 29;
     repeated MessageId messageIds = 30;
-    int32 unknown35 = 35; // 1
+    int32 largeContext = 35; // 1
     int32 unknown38 = 38; // 0
-    int32 unknown46 = 46; // 1
+    int32 chatMode = 46; // 1 for ask, 2 for agent, 3 for edit
     string unknown47 = 47; 
-    int32 unknown48 = 48; // 1
+    int32 unknown48 = 48; // 0
+    int32 unknown49 = 49; // 0
+    int32 unknown50 = 50; // 1 for ask, 0 for agent, 0 for edit
+    int32 unknown51 = 51; // 0
   }
   
   Request request = 1;
@@ -92,8 +104,27 @@ message StreamUnifiedChatWithToolsRequest {
 
 message StreamUnifiedChatWithToolsResponse {
   message Message {
+    message WebTool {
+      message WebPage {
+        string url = 1;
+        string title = 2;
+        string content = 3;
+      }
+      repeated WebPage webPage = 1;
+    }
+    message Unknown12 {
+      message Content {
+        string content = 1;
+      }
+      Content content = 1;
+    }
     string content = 1;
+    WebTool webtool = 11;
+    Unknown12 unknown12 = 12;
     string unknown22 = 22; // uuid
+    string unknown23 = 23;
+    string unknown27 = 27; // uuid
+    MessageThinking thinking = 25;
   }
 
   Message message = 2;
