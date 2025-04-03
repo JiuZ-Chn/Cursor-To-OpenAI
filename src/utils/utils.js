@@ -62,7 +62,7 @@ function generateCursorBody(messages, modelName) {
       unknown27: 0,
       //unknown29: "",
       messageIds: messageIds,
-      largeContext: 0,
+      largeContext: 1,
       unknown38: 0,
       chatMode: 1,
       unknown47: "",
