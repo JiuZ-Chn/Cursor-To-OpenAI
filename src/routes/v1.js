@@ -163,10 +163,25 @@ router.post('/chat/completions', async (req, res) => {
       const responseId = `chatcmpl-${uuidv4()}`;
 
       try {
+        let thinkingStart = "<thinking>";
+        let thinkingEnd = "</thinking>";
         for await (const chunk of response.body) {
-          let text = chunkToUtf8String(chunk);
+          const { thinking, text } = chunkToUtf8String(chunk);
+          let content = ""
 
-          if (text.length > 0) {
+          if (thinking.length > 0 && thinkingStart !== ""){
+            content += thinkingStart + "\n"
+            thinkingStart = ""
+          }
+          content += thinking
+          if (thinking.length === 0 && thinkingStart == "" && thinkingEnd !== "") {
+            content += thinkingEnd + "\n"
+            thinkingEnd = ""
+          }
+
+          content += text
+
+          if (content.length > 0) {
             res.write(
               `data: ${JSON.stringify({
                 id: responseId,
@@ -176,7 +191,7 @@ router.post('/chat/completions', async (req, res) => {
                 choices: [{
                   index: 0,
                   delta: {
-                    content: text,
+                    content: content,
                   },
                 }],
               })}\n\n`
