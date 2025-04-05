@@ -104,22 +104,24 @@ function chunkToUtf8String(chunk) {
       const magicNumber = parseInt(buffer.subarray(i, i + 1).toString('hex'), 16)
       const dataLength = parseInt(buffer.subarray(i + 1, i + 5).toString('hex'), 16)
       const data = buffer.subarray(i + 5, i + 5 + dataLength)
-      //console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
+      console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
 
       if (magicNumber == 0 || magicNumber == 1) {
         const gunzipData = magicNumber == 0 ? data : zlib.gunzipSync(data)
-        const message = $root.StreamUnifiedChatWithToolsResponse.decode(gunzipData);
+        const response = $root.StreamUnifiedChatWithToolsResponse.decode(gunzipData);
 
-        const thinking = message?.thinking.content
+        const thinking = response?.message?.thinking?.content
         if (thinking !== undefined){
           results.push(thinking)
+          //console.log(thinking)
         }
 
-        const content = message.message.content
+        const content = response?.message?.content
         if (content !== undefined){
           results.push(content)
+          //console.log(content)
         }
-        //console.log(content)
+        
       }
       else if (magicNumber == 2 || magicNumber == 3) { 
         // Json message
@@ -141,7 +143,7 @@ function chunkToUtf8String(chunk) {
       i += 5 + dataLength - 1
     }
   } catch (err) {
-    //
+    console.log('Error parsing chunk response:', err)
   }
 
   return results.join('')
