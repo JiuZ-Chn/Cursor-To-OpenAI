@@ -95,7 +95,8 @@ function generateCursorBody(messages, modelName) {
 }
 
 function chunkToUtf8String(chunk) {
-  const results = []
+  const thinkingOutput = []
+  const textOutput = []
   const buffer = Buffer.from(chunk, 'hex');
   //console.log("Chunk buffer:", buffer.toString('hex'))
 
@@ -112,13 +113,13 @@ function chunkToUtf8String(chunk) {
 
         const thinking = response?.message?.thinking?.content
         if (thinking !== undefined){
-          results.push(thinking)
+          thinkingOutput.push(thinking)
           //console.log(thinking)
         }
 
         const content = response?.message?.content
         if (content !== undefined){
-          results.push(content)
+          textOutput.push(content)
           //console.log(content)
         }
         
@@ -146,7 +147,10 @@ function chunkToUtf8String(chunk) {
     console.log('Error parsing chunk response:', err)
   }
 
-  return results.join('')
+  return {
+    thinking: thinkingOutput.join(''), 
+    text: textOutput.join('') 
+  }
 }
 
 function generateHashed64Hex(input, salt = '') {
