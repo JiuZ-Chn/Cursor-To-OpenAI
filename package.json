@@ -1,6 +1,6 @@
 {
   "name": "cursor-to-openai",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Cursor to OpenAPI",
   "author": "JiuZ-Chn",
   "private": false,
@@ -16,6 +16,7 @@
   },
   "scripts": {
     "proto": "npx pbjs -t static-module -w commonjs -o src/proto/message.js src/proto/message.proto",
+    "login": "node src/tool/cursorLogin.js",
     "start": "node src/app.js"
   },
   "devDependencies": {
