@@ -40,7 +40,7 @@ message StreamUnifiedChatWithToolsRequest {
       string summaryId = 32;
       MessageSummary summary = 39;
       MessageThinking thinking = 45;
-      int32 chatMode = 47; // 1 for ask, 2 for agent, 3 for edit
+      int32 chatModeEnum = 47; // 1 for ask, 2 for agent, 3 for edit
     }
     message Instruction {
       string instruction = 1;
@@ -91,12 +91,13 @@ message StreamUnifiedChatWithToolsRequest {
     repeated MessageId messageIds = 30;
     int32 largeContext = 35; // 1
     int32 unknown38 = 38; // 0
-    int32 chatMode = 46; // 1 for ask, 2 for agent, 3 for edit
+    int32 chatModeEnum = 46; // 1 for ask, 2 for agent, 3 for edit
     string unknown47 = 47; 
     int32 unknown48 = 48; // 0
     int32 unknown49 = 49; // 0
-    int32 unknown50 = 50; // 1 for ask, 0 for agent, 0 for edit
     int32 unknown51 = 51; // 0
+    int32 unknown53 = 53; // 0
+    string chatMode = 54;
   }
   
   Request request = 1;
