@@ -11,8 +11,27 @@ This project provides a proxy service that converts the AI chat of the Cursor Ed
 1. Visit [Cursor](https://www.cursor.com) and register a account.
     - 150 fast premium requests are given, which can be reset by deleting the account and then registering again
     - Suggest to use gmail/outlook email, some temp emails have been disabled by Cursor.
-2. Log in and open the developer tool in the browser (F12).
-3. Find the cookie value named `WorkosCursorSessionToken` in Application-Cookies and save it (The value starts with `user_`).
+
+
+## Get Cursor client cookie
+
+The cookie from Cursor webpage does not work in Cursor-To-OpenAI server. You need to get the Cursor client cookie following these steps:
+
+1. Run `npm install` to initialize the environment。
+2. Run `npm install login`. Open the URL shows in the log, and then login your account.
+3. The cookie shows in your command is the `Curosr Cookie` value. Copy and save it to your notepad.
+
+The log of this command looks like:
+```
+[Log] Please open the following URL in your browser to login:
+https://www.cursor.com/cn/loginDeepControl?challenge=6aDBevuHkK-HLiZ<......>k2lEjbVRMpg&uuid=5147ac09<....>5fe5f3aeb&mode=login      <-- Copy the url and open it in your browser.
+[Log] Waiting for login... (1/60)
+[Log] Waiting for login... (2/60)
+[Log] Waiting for login... (3/60)
+[Log] Waiting for login... (4/60)
+[Log] Login successfully. Your Cursor cookie:
+user_01JJF<.....>K3F4T8%3A%3AeyJhbGciOiJIUzI1NiIsInR5cCI6Ikp<...................>AsCpbPfnlHy022WxmlKIt4Q7Ll0     <-- This is the Cursor cookie, please save it.
+```
 
 ## How to Run
 
@@ -32,12 +51,12 @@ npm run start
 1. Get models
     - Url：`http://localhost:3010/v1/models`
     - Request：`GET`
-    - Authentication：`Bearer Token`（The value of `WorkosCursorSessionToken`，supports comma-separated values）
+    - Authentication：`Bearer Token`（The value of `Cursor Cookie`)
 
 2. Chat completion
     - Url：`http://localhost:3010/v1/chat/completions`
     - Request：`POST`
-    - Authentication：`Bearer Token`（The value of `WorkosCursorSessionToken`，supports comma-separated values）
+    - Authentication：`Bearer Token`（The value of `Cursor Cookie`，supports comma-separated values）
 
  for the response body, please refer to the OpenAI interface
 
@@ -45,7 +64,7 @@ npm run start
 ```
 from openai import OpenAI
 
-client = OpenAI(api_key="{{{Replace by the WorkosCursorSessionToken value of your account. It starts with user_...}}}",
+client = OpenAI(api_key="{{{Replace by the Cursor cookie of your account. It starts with user_...}}}",
                 base_url="http://localhost:3010/v1")
 
 response = client.chat.completions.create(
@@ -61,7 +80,7 @@ print(response.choices)
 
 ## Notes
 
-- Please keep your WorkosCursorSessionToken properly and do not disclose it to others
+- Please keep your Cursor cookie properly and do not disclose it to others
 - This project is for study and research only, please abide by the Cursor Terms of Use
 
 ## Acknowledgements
