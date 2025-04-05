@@ -17,6 +17,7 @@ function generateCursorBody(messages, modelName) {
       content: msg.content,
       role: msg.role === 'user' ? 1 : 2,
       messageId: uuidv4(),
+      ...(msg.role === 'user' ? { chatModeEnum: 1 } : {})
       //...(msg.role !== 'user' ? { summaryId: uuidv4() } : {})
     }));
 
@@ -62,14 +63,15 @@ function generateCursorBody(messages, modelName) {
       unknown27: 0,
       //unknown29: "",
       messageIds: messageIds,
-      largeContext: 1,
+      largeContext: 0,
       unknown38: 0,
-      chatMode: 1,
+      chatModeEnum: 1,
       unknown47: "",
       unknown48: 0,
       unknown49: 0,
-      unknown50: 1,
-      unknown51: 0
+      unknown51: 0,
+      unknown53: 1,
+      chatMode: "Ask"
     }
   };
 
@@ -102,14 +104,21 @@ function chunkToUtf8String(chunk) {
       const magicNumber = parseInt(buffer.subarray(i, i + 1).toString('hex'), 16)
       const dataLength = parseInt(buffer.subarray(i + 1, i + 5).toString('hex'), 16)
       const data = buffer.subarray(i + 5, i + 5 + dataLength)
-      console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
+      //console.log("Parsed buffer:", magicNumber, dataLength, data.toString('hex'))
 
       if (magicNumber == 0 || magicNumber == 1) {
         const gunzipData = magicNumber == 0 ? data : zlib.gunzipSync(data)
         const message = $root.StreamUnifiedChatWithToolsResponse.decode(gunzipData);
+
+        const thinking = message?.thinking.content
+        if (thinking !== undefined){
+          results.push(thinking)
+        }
+
         const content = message.message.content
-        if(content !== undefined)
+        if (content !== undefined){
           results.push(content)
+        }
         //console.log(content)
       }
       else if (magicNumber == 2 || magicNumber == 3) { 
@@ -117,11 +126,13 @@ function chunkToUtf8String(chunk) {
         const gunzipData = magicNumber == 2 ? data : zlib.gunzipSync(data)
         const utf8 = gunzipData.toString('utf-8')
         const message = JSON.parse(utf8)
+
         if (message != null && (typeof message !== 'object' || 
           (Array.isArray(message) ? message.length > 0 : Object.keys(message).length > 0))){
-            results.push(utf8)
+            //results.push(utf8)
             console.error(utf8)
         }
+
       }
       else {
         //console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
