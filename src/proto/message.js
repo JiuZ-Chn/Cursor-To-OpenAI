@@ -1275,12 +1275,13 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
          * @property {Array.<StreamUnifiedChatWithToolsRequest.Request.IMessageId>|null} [messageIds] Request messageIds
          * @property {number|null} [largeContext] Request largeContext
          * @property {number|null} [unknown38] Request unknown38
-         * @property {number|null} [chatMode] Request chatMode
+         * @property {number|null} [chatModeEnum] Request chatModeEnum
          * @property {string|null} [unknown47] Request unknown47
          * @property {number|null} [unknown48] Request unknown48
          * @property {number|null} [unknown49] Request unknown49
-         * @property {number|null} [unknown50] Request unknown50
          * @property {number|null} [unknown51] Request unknown51
+         * @property {number|null} [unknown53] Request unknown53
+         * @property {string|null} [chatMode] Request chatMode
          */
 
         /**
@@ -1446,12 +1447,12 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
         Request.prototype.unknown38 = 0;
 
         /**
-         * Request chatMode.
-         * @member {number} chatMode
+         * Request chatModeEnum.
+         * @member {number} chatModeEnum
          * @memberof StreamUnifiedChatWithToolsRequest.Request
          * @instance
          */
-        Request.prototype.chatMode = 0;
+        Request.prototype.chatModeEnum = 0;
 
         /**
          * Request unknown47.
@@ -1478,20 +1479,28 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
         Request.prototype.unknown49 = 0;
 
         /**
-         * Request unknown50.
-         * @member {number} unknown50
-         * @memberof StreamUnifiedChatWithToolsRequest.Request
-         * @instance
-         */
-        Request.prototype.unknown50 = 0;
-
-        /**
          * Request unknown51.
          * @member {number} unknown51
          * @memberof StreamUnifiedChatWithToolsRequest.Request
          * @instance
          */
         Request.prototype.unknown51 = 0;
+
+        /**
+         * Request unknown53.
+         * @member {number} unknown53
+         * @memberof StreamUnifiedChatWithToolsRequest.Request
+         * @instance
+         */
+        Request.prototype.unknown53 = 0;
+
+        /**
+         * Request chatMode.
+         * @member {string} chatMode
+         * @memberof StreamUnifiedChatWithToolsRequest.Request
+         * @instance
+         */
+        Request.prototype.chatMode = "";
 
         /**
          * Creates a new Request instance using the specified properties.
@@ -1556,18 +1565,20 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 writer.uint32(/* id 35, wireType 0 =*/280).int32(message.largeContext);
             if (message.unknown38 != null && Object.hasOwnProperty.call(message, "unknown38"))
                 writer.uint32(/* id 38, wireType 0 =*/304).int32(message.unknown38);
-            if (message.chatMode != null && Object.hasOwnProperty.call(message, "chatMode"))
-                writer.uint32(/* id 46, wireType 0 =*/368).int32(message.chatMode);
+            if (message.chatModeEnum != null && Object.hasOwnProperty.call(message, "chatModeEnum"))
+                writer.uint32(/* id 46, wireType 0 =*/368).int32(message.chatModeEnum);
             if (message.unknown47 != null && Object.hasOwnProperty.call(message, "unknown47"))
                 writer.uint32(/* id 47, wireType 2 =*/378).string(message.unknown47);
             if (message.unknown48 != null && Object.hasOwnProperty.call(message, "unknown48"))
                 writer.uint32(/* id 48, wireType 0 =*/384).int32(message.unknown48);
             if (message.unknown49 != null && Object.hasOwnProperty.call(message, "unknown49"))
                 writer.uint32(/* id 49, wireType 0 =*/392).int32(message.unknown49);
-            if (message.unknown50 != null && Object.hasOwnProperty.call(message, "unknown50"))
-                writer.uint32(/* id 50, wireType 0 =*/400).int32(message.unknown50);
             if (message.unknown51 != null && Object.hasOwnProperty.call(message, "unknown51"))
                 writer.uint32(/* id 51, wireType 0 =*/408).int32(message.unknown51);
+            if (message.unknown53 != null && Object.hasOwnProperty.call(message, "unknown53"))
+                writer.uint32(/* id 53, wireType 0 =*/424).int32(message.unknown53);
+            if (message.chatMode != null && Object.hasOwnProperty.call(message, "chatMode"))
+                writer.uint32(/* id 54, wireType 2 =*/434).string(message.chatMode);
             return writer;
         };
 
@@ -1681,7 +1692,7 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                         break;
                     }
                 case 46: {
-                        message.chatMode = reader.int32();
+                        message.chatModeEnum = reader.int32();
                         break;
                     }
                 case 47: {
@@ -1696,12 +1707,16 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                         message.unknown49 = reader.int32();
                         break;
                     }
-                case 50: {
-                        message.unknown50 = reader.int32();
-                        break;
-                    }
                 case 51: {
                         message.unknown51 = reader.int32();
+                        break;
+                    }
+                case 53: {
+                        message.unknown53 = reader.int32();
+                        break;
+                    }
+                case 54: {
+                        message.chatMode = reader.string();
                         break;
                     }
                 default:
@@ -1817,9 +1832,9 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
             if (message.unknown38 != null && message.hasOwnProperty("unknown38"))
                 if (!$util.isInteger(message.unknown38))
                     return "unknown38: integer expected";
-            if (message.chatMode != null && message.hasOwnProperty("chatMode"))
-                if (!$util.isInteger(message.chatMode))
-                    return "chatMode: integer expected";
+            if (message.chatModeEnum != null && message.hasOwnProperty("chatModeEnum"))
+                if (!$util.isInteger(message.chatModeEnum))
+                    return "chatModeEnum: integer expected";
             if (message.unknown47 != null && message.hasOwnProperty("unknown47"))
                 if (!$util.isString(message.unknown47))
                     return "unknown47: string expected";
@@ -1829,12 +1844,15 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
             if (message.unknown49 != null && message.hasOwnProperty("unknown49"))
                 if (!$util.isInteger(message.unknown49))
                     return "unknown49: integer expected";
-            if (message.unknown50 != null && message.hasOwnProperty("unknown50"))
-                if (!$util.isInteger(message.unknown50))
-                    return "unknown50: integer expected";
             if (message.unknown51 != null && message.hasOwnProperty("unknown51"))
                 if (!$util.isInteger(message.unknown51))
                     return "unknown51: integer expected";
+            if (message.unknown53 != null && message.hasOwnProperty("unknown53"))
+                if (!$util.isInteger(message.unknown53))
+                    return "unknown53: integer expected";
+            if (message.chatMode != null && message.hasOwnProperty("chatMode"))
+                if (!$util.isString(message.chatMode))
+                    return "chatMode: string expected";
             return null;
         };
 
@@ -1919,18 +1937,20 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 message.largeContext = object.largeContext | 0;
             if (object.unknown38 != null)
                 message.unknown38 = object.unknown38 | 0;
-            if (object.chatMode != null)
-                message.chatMode = object.chatMode | 0;
+            if (object.chatModeEnum != null)
+                message.chatModeEnum = object.chatModeEnum | 0;
             if (object.unknown47 != null)
                 message.unknown47 = String(object.unknown47);
             if (object.unknown48 != null)
                 message.unknown48 = object.unknown48 | 0;
             if (object.unknown49 != null)
                 message.unknown49 = object.unknown49 | 0;
-            if (object.unknown50 != null)
-                message.unknown50 = object.unknown50 | 0;
             if (object.unknown51 != null)
                 message.unknown51 = object.unknown51 | 0;
+            if (object.unknown53 != null)
+                message.unknown53 = object.unknown53 | 0;
+            if (object.chatMode != null)
+                message.chatMode = String(object.chatMode);
             return message;
         };
 
@@ -1968,12 +1988,13 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 object.unknown29 = "";
                 object.largeContext = 0;
                 object.unknown38 = 0;
-                object.chatMode = 0;
+                object.chatModeEnum = 0;
                 object.unknown47 = "";
                 object.unknown48 = 0;
                 object.unknown49 = 0;
-                object.unknown50 = 0;
                 object.unknown51 = 0;
+                object.unknown53 = 0;
+                object.chatMode = "";
             }
             if (message.messages && message.messages.length) {
                 object.messages = [];
@@ -2020,18 +2041,20 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 object.largeContext = message.largeContext;
             if (message.unknown38 != null && message.hasOwnProperty("unknown38"))
                 object.unknown38 = message.unknown38;
-            if (message.chatMode != null && message.hasOwnProperty("chatMode"))
-                object.chatMode = message.chatMode;
+            if (message.chatModeEnum != null && message.hasOwnProperty("chatModeEnum"))
+                object.chatModeEnum = message.chatModeEnum;
             if (message.unknown47 != null && message.hasOwnProperty("unknown47"))
                 object.unknown47 = message.unknown47;
             if (message.unknown48 != null && message.hasOwnProperty("unknown48"))
                 object.unknown48 = message.unknown48;
             if (message.unknown49 != null && message.hasOwnProperty("unknown49"))
                 object.unknown49 = message.unknown49;
-            if (message.unknown50 != null && message.hasOwnProperty("unknown50"))
-                object.unknown50 = message.unknown50;
             if (message.unknown51 != null && message.hasOwnProperty("unknown51"))
                 object.unknown51 = message.unknown51;
+            if (message.unknown53 != null && message.hasOwnProperty("unknown53"))
+                object.unknown53 = message.unknown53;
+            if (message.chatMode != null && message.hasOwnProperty("chatMode"))
+                object.chatMode = message.chatMode;
             return object;
         };
 
@@ -2075,7 +2098,7 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
              * @property {string|null} [summaryId] Message summaryId
              * @property {IMessageSummary|null} [summary] Message summary
              * @property {IMessageThinking|null} [thinking] Message thinking
-             * @property {number|null} [chatMode] Message chatMode
+             * @property {number|null} [chatModeEnum] Message chatModeEnum
              */
 
             /**
@@ -2158,12 +2181,12 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
             Message.prototype.thinking = null;
 
             /**
-             * Message chatMode.
-             * @member {number} chatMode
+             * Message chatModeEnum.
+             * @member {number} chatModeEnum
              * @memberof StreamUnifiedChatWithToolsRequest.Request.Message
              * @instance
              */
-            Message.prototype.chatMode = 0;
+            Message.prototype.chatModeEnum = 0;
 
             /**
              * Creates a new Message instance using the specified properties.
@@ -2205,8 +2228,8 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                     $root.MessageSummary.encode(message.summary, writer.uint32(/* id 39, wireType 2 =*/314).fork()).ldelim();
                 if (message.thinking != null && Object.hasOwnProperty.call(message, "thinking"))
                     $root.MessageThinking.encode(message.thinking, writer.uint32(/* id 45, wireType 2 =*/362).fork()).ldelim();
-                if (message.chatMode != null && Object.hasOwnProperty.call(message, "chatMode"))
-                    writer.uint32(/* id 47, wireType 0 =*/376).int32(message.chatMode);
+                if (message.chatModeEnum != null && Object.hasOwnProperty.call(message, "chatModeEnum"))
+                    writer.uint32(/* id 47, wireType 0 =*/376).int32(message.chatModeEnum);
                 return writer;
             };
 
@@ -2274,7 +2297,7 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                             break;
                         }
                     case 47: {
-                            message.chatMode = reader.int32();
+                            message.chatModeEnum = reader.int32();
                             break;
                         }
                     default:
@@ -2342,9 +2365,9 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                     if (error)
                         return "thinking." + error;
                 }
-                if (message.chatMode != null && message.hasOwnProperty("chatMode"))
-                    if (!$util.isInteger(message.chatMode))
-                        return "chatMode: integer expected";
+                if (message.chatModeEnum != null && message.hasOwnProperty("chatModeEnum"))
+                    if (!$util.isInteger(message.chatModeEnum))
+                        return "chatModeEnum: integer expected";
                 return null;
             };
 
@@ -2385,8 +2408,8 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                         throw TypeError(".StreamUnifiedChatWithToolsRequest.Request.Message.thinking: object expected");
                     message.thinking = $root.MessageThinking.fromObject(object.thinking);
                 }
-                if (object.chatMode != null)
-                    message.chatMode = object.chatMode | 0;
+                if (object.chatModeEnum != null)
+                    message.chatModeEnum = object.chatModeEnum | 0;
                 return message;
             };
 
@@ -2412,7 +2435,7 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                     object.summaryId = "";
                     object.summary = null;
                     object.thinking = null;
-                    object.chatMode = 0;
+                    object.chatModeEnum = 0;
                 }
                 if (message.content != null && message.hasOwnProperty("content"))
                     object.content = message.content;
@@ -2430,8 +2453,8 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                     object.summary = $root.MessageSummary.toObject(message.summary, options);
                 if (message.thinking != null && message.hasOwnProperty("thinking"))
                     object.thinking = $root.MessageThinking.toObject(message.thinking, options);
-                if (message.chatMode != null && message.hasOwnProperty("chatMode"))
-                    object.chatMode = message.chatMode;
+                if (message.chatModeEnum != null && message.hasOwnProperty("chatModeEnum"))
+                    object.chatModeEnum = message.chatModeEnum;
                 return object;
             };
 
