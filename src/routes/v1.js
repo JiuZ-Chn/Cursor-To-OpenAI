@@ -169,13 +169,13 @@ router.post('/chat/completions', async (req, res) => {
           const { thinking, text } = chunkToUtf8String(chunk);
           let content = ""
 
-          if (thinking.length > 0 && thinkingStart !== ""){
+          if (thinkingStart !== "" && thinking.length > 0 ){
             content += thinkingStart + "\n"
             thinkingStart = ""
           }
           content += thinking
-          if (thinking.length === 0 && thinkingStart == "" && thinkingEnd !== "") {
-            content += thinkingEnd + "\n"
+          if (thinkingEnd !== "" && thinking.length === 0 && text.length !== 0 && thinkingStart === "") {
+            content += "\n" + thinkingEnd + "\n"
             thinkingEnd = ""
           }
 
@@ -212,11 +212,24 @@ router.post('/chat/completions', async (req, res) => {
     } else {
       // Non-streaming response
       try {
-        let text = '';
+        let thinkingStart = "<thinking>";
+        let thinkingEnd = "</thinking>";
+        let content = '';
         for await (const chunk of response.body) {
-          text += chunkToUtf8String(chunk);
-        }
+          const { thinking, text } = chunkToUtf8String(chunk);
+          
+          if (thinkingStart !== "" && thinking.length > 0 ){
+            content += thinkingStart + "\n"
+            thinkingStart = ""
+          }
+          content += thinking
+          if (thinkingEnd !== "" && thinking.length === 0 && text.length !== 0 && thinkingStart === "") {
+            content += "\n" + thinkingEnd + "\n"
+            thinkingEnd = ""
+          }
 
+          content += text
+        }
 
         return res.json({
           id: `chatcmpl-${uuidv4()}`,
@@ -228,7 +241,7 @@ router.post('/chat/completions', async (req, res) => {
               index: 0,
               message: {
                 role: 'assistant',
-                content: text,
+                content: content,
               },
               finish_reason: 'stop',
             },
