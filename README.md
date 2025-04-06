@@ -18,7 +18,7 @@ This project provides a proxy service that converts the AI chat of the Cursor Ed
 The cookie from Cursor webpage does not work in Cursor-To-OpenAI server. You need to get the Cursor client cookie following these steps:
 
 1. Run `npm install` to initialize the environment。
-2. Run `npm install login`. Open the URL shows in the log, and then login your account.
+2. Run `npm run login`. Open the URL shows in the log, and then login your account.
 3. The cookie shows in your command is the `Curosr Cookie` value. Copy and save it to your notepad.
 
 The log of this command looks like:
