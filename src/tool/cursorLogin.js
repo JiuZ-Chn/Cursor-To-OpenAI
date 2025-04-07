@@ -8,7 +8,7 @@ function generatePkcePair() {
 }
 
 function getLoginUrl(uuid, challenge) {
-  const loginUrl = `https://www.cursor.com/cn/loginDeepControl?challenge=${challenge}&uuid=${uuid}&mode=login`
+  const loginUrl = `https://www.cursor.com/loginDeepControl?challenge=${challenge}&uuid=${uuid}&mode=login`
   return loginUrl
 }
 
