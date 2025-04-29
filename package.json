@@ -10,6 +10,7 @@
   "dependencies": {
     "express": "4.21.2",
     "morgan": "^1.10.0",
+    "node-tls-client": "^2.0.0",
     "protobufjs": "^7.4.0",
     "undici": "^7.4.0",
     "uuid": "11.0.5"
