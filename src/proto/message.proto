@@ -98,6 +98,8 @@ message StreamUnifiedChatWithToolsRequest {
     int32 unknown51 = 51; // 0
     int32 unknown53 = 53; // 0
     string chatMode = 54;
+    int32 unknown57 = 57; // 1
+    string unknown59 = 59; // none
   }
   
   Request request = 1;
