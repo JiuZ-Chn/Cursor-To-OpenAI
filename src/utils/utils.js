@@ -70,8 +70,10 @@ function generateCursorBody(messages, modelName) {
       unknown48: 0,
       unknown49: 0,
       unknown51: 0,
-      unknown53: 1,
-      chatMode: "Ask"
+      unknown53: 0,
+      chatMode: "Ask",
+      unknown57: 1,
+      unknown59: "none"
     }
   };
 
@@ -128,14 +130,18 @@ function chunkToUtf8String(chunk) {
         // Json message
         const gunzipData = magicNumber == 2 ? data : zlib.gunzipSync(data)
         const utf8 = gunzipData.toString('utf-8')
-        const message = JSON.parse(utf8)
 
-        if (message != null && (typeof message !== 'object' || 
-          (Array.isArray(message) ? message.length > 0 : Object.keys(message).length > 0))){
-            //results.push(utf8)
-            console.error(utf8)
+        try{
+          const message = JSON.parse(utf8)
+
+          if (message != null && (typeof message !== 'object' || 
+            (Array.isArray(message) ? message.length > 0 : Object.keys(message).length > 0))){
+              //results.push(utf8)
+              console.error(utf8)        
+          }
+        } catch (err) {
+          console.error(utf8)
         }
-
       }
       else {
         //console.log('Unknown magic number when parsing chunk response: ' + magicNumber)
