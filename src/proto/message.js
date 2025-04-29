@@ -1282,6 +1282,8 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
          * @property {number|null} [unknown51] Request unknown51
          * @property {number|null} [unknown53] Request unknown53
          * @property {string|null} [chatMode] Request chatMode
+         * @property {number|null} [unknown57] Request unknown57
+         * @property {string|null} [unknown59] Request unknown59
          */
 
         /**
@@ -1503,6 +1505,22 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
         Request.prototype.chatMode = "";
 
         /**
+         * Request unknown57.
+         * @member {number} unknown57
+         * @memberof StreamUnifiedChatWithToolsRequest.Request
+         * @instance
+         */
+        Request.prototype.unknown57 = 0;
+
+        /**
+         * Request unknown59.
+         * @member {string} unknown59
+         * @memberof StreamUnifiedChatWithToolsRequest.Request
+         * @instance
+         */
+        Request.prototype.unknown59 = "";
+
+        /**
          * Creates a new Request instance using the specified properties.
          * @function create
          * @memberof StreamUnifiedChatWithToolsRequest.Request
@@ -1579,6 +1597,10 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 writer.uint32(/* id 53, wireType 0 =*/424).int32(message.unknown53);
             if (message.chatMode != null && Object.hasOwnProperty.call(message, "chatMode"))
                 writer.uint32(/* id 54, wireType 2 =*/434).string(message.chatMode);
+            if (message.unknown57 != null && Object.hasOwnProperty.call(message, "unknown57"))
+                writer.uint32(/* id 57, wireType 0 =*/456).int32(message.unknown57);
+            if (message.unknown59 != null && Object.hasOwnProperty.call(message, "unknown59"))
+                writer.uint32(/* id 59, wireType 2 =*/474).string(message.unknown59);
             return writer;
         };
 
@@ -1719,6 +1741,14 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                         message.chatMode = reader.string();
                         break;
                     }
+                case 57: {
+                        message.unknown57 = reader.int32();
+                        break;
+                    }
+                case 59: {
+                        message.unknown59 = reader.string();
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -1853,6 +1883,12 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
             if (message.chatMode != null && message.hasOwnProperty("chatMode"))
                 if (!$util.isString(message.chatMode))
                     return "chatMode: string expected";
+            if (message.unknown57 != null && message.hasOwnProperty("unknown57"))
+                if (!$util.isInteger(message.unknown57))
+                    return "unknown57: integer expected";
+            if (message.unknown59 != null && message.hasOwnProperty("unknown59"))
+                if (!$util.isString(message.unknown59))
+                    return "unknown59: string expected";
             return null;
         };
 
@@ -1951,6 +1987,10 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 message.unknown53 = object.unknown53 | 0;
             if (object.chatMode != null)
                 message.chatMode = String(object.chatMode);
+            if (object.unknown57 != null)
+                message.unknown57 = object.unknown57 | 0;
+            if (object.unknown59 != null)
+                message.unknown59 = String(object.unknown59);
             return message;
         };
 
@@ -1995,6 +2035,8 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 object.unknown51 = 0;
                 object.unknown53 = 0;
                 object.chatMode = "";
+                object.unknown57 = 0;
+                object.unknown59 = "";
             }
             if (message.messages && message.messages.length) {
                 object.messages = [];
@@ -2055,6 +2097,10 @@ $root.StreamUnifiedChatWithToolsRequest = (function() {
                 object.unknown53 = message.unknown53;
             if (message.chatMode != null && message.hasOwnProperty("chatMode"))
                 object.chatMode = message.chatMode;
+            if (message.unknown57 != null && message.hasOwnProperty("unknown57"))
+                object.unknown57 = message.unknown57;
+            if (message.unknown59 != null && message.hasOwnProperty("unknown59"))
+                object.unknown59 = message.unknown59;
             return object;
         };
 
