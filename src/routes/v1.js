@@ -20,7 +20,7 @@ router.get("/models", async (req, res) => {
 
     const cursorChecksum = req.headers['x-cursor-checksum'] 
       ?? generateCursorChecksum(authToken.trim());
-    const cursorClientVersion = "0.48.7"
+    const cursorClientVersion = config.cursorClientVersion
 
     const availableModelsResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
       method: 'POST',
@@ -38,8 +38,36 @@ router.get("/models", async (req, res) => {
         'Host': 'api2.cursor.sh',
       },
     })
+    
+    // Check response status
+    if (availableModelsResponse.status !== 200) {
+      const errorText = await availableModelsResponse.text();
+      console.error('Cursor API error:', errorText);
+      return res.status(availableModelsResponse.status).json({
+        error: {
+          message: 'Failed to fetch models from Cursor API',
+          details: errorText
+        }
+      });
+    }
+
     const data = await availableModelsResponse.arrayBuffer();
     const buffer = Buffer.from(data);
+    
+    // Try to parse as JSON first (for error responses)
+    try {
+      const text = buffer.toString('utf-8');
+      const jsonData = JSON.parse(text);
+      // If it's a JSON error response, return it
+      if (jsonData.error) {
+        console.error('Cursor API returned error:', jsonData);
+        return res.status(200).json(jsonData);
+      }
+    } catch (jsonError) {
+      // Not JSON, continue with protobuf parsing
+    }
+    
+    // Try to parse as protobuf
     try{
       const models = $root.AvailableModelsResponse.decode(buffer).models;
 
@@ -54,13 +82,28 @@ router.get("/models", async (req, res) => {
       })
     } catch (error) {
       const text = buffer.toString('utf-8');
-      throw new Error(text);      
+      console.error('Failed to decode protobuf response:', text);
+      // Try to parse as JSON error
+      try {
+        const jsonError = JSON.parse(text);
+        return res.status(200).json(jsonError);
+      } catch (e) {
+        return res.status(500).json({
+          error: {
+            message: 'Failed to parse response from Cursor API',
+            details: text.substring(0, 500)
+          }
+        });
+      }
     }
   }
   catch (error) {
-    console.error(error);
+    console.error('Error in /models endpoint:', error);
     return res.status(500).json({
-      error: 'Internal server error',
+      error: {
+        message: 'Internal server error',
+        details: error.message
+      }
     });
   }
 })
@@ -92,11 +135,11 @@ router.post('/chat/completions', async (req, res) => {
 
     const sessionid = uuidv5(authToken,  uuidv5.DNS);
     const clientKey = generateHashed64Hex(authToken)
-    const cursorClientVersion = "0.48.7"
+    const cursorClientVersion = config.cursorClientVersion
     const cursorConfigVersion = uuidv4();
 
     // Request the AvailableModels before StreamChat.
-    const availableModelsResponse = fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
+    const availableModelsResponse = await fetch("https://api2.cursor.sh/aiserver.v1.AiService/AvailableModels", {
       method: 'POST',
       headers: {
         'accept-encoding': 'gzip',
@@ -278,3 +321,5 @@ router.post('/chat/completions', async (req, res) => {
 });
 
 module.exports = router;
+
+
