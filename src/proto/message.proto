@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+message AvailableModelsResponse { 
+  message AvailableModel {
+    string name = 1;
+    bool defaultOn = 2;
+    optional bool isLongContextOnly = 3;
+    optional bool isChatOnly = 4;
+  }
+  repeated AvailableModel models = 2;
+  repeated string modelNames = 1;
+}
+
+message MessageSummary {
+  string content = 1;
+  string summaryId1 = 2; 
+  string summaryId2 = 3; // uuid, equal to summaryId1
+  string previousSummaryId = 4; 
+}
+
+message MessageThinking {
+  string content = 1;
+}
+message StreamUnifiedChatWithToolsRequest {
+  message Request {
+    message Message {
+      message Image {
+        message Metadata {
+          int32 width = 1;
+          int32 height = 2;
+        }
+        bytes data = 1;
+        Metadata metadata = 2;
+      }
+      string content = 1;
+      int32 role = 2;
+      Image image = 10;
+      string messageId = 13;
+      string unknown29 = 29; // 1, only for user message
+      string summaryId = 32;
+      MessageSummary summary = 39;
+      MessageThinking thinking = 45;
+      int32 chatModeEnum = 47; // 1 for ask, 2 for agent, 3 for edit
+    }
+    message Instruction {
+      string instruction = 1;
+    }
+    message Model {
+      string name = 1;
+      bytes empty = 4;
+    }
+    message CursorSetting {
+      message Unknown6 {
+        bytes unknown1 = 1;
+        bytes unknown2 = 2;
+      }
+      string name = 1;
+      bytes unknown3 = 3;
+      Unknown6 unknown6 = 6;
+      int32 unknown8 = 8;
+      int32 unknown9 = 9;
+    }
+    message Metadata {
+      string os = 1; // win32
+      string arch = 2; // x64
+      string version = 3; // 10.0.22631
+      string path = 4; // C:\Program Files\PowerShell\7\pwsh.exe
+      string timestamp = 5; // 2025-03-03T13:10:08.590Z
+    }
+    message MessageId {
+      string messageId = 1;
+      string summaryId = 2;
+      int32 role = 3;
+    }
+
+    repeated Message messages = 1;
+    int32 unknown2 = 2; // 1
+    Instruction instruction = 3;
+    int32 unknown4 = 4; // 1
+    Model model = 5;
+    repeated string wikiTool = 7; // one url one item
+    string webTool = 8; // "full search"
+    int32 unknown13 = 13;
+    CursorSetting cursorSetting = 15;
+    int32 unknown19 = 19; // 1
+    int32 unknown22 = 22; // 1
+    string conversationId = 23; // uuid
+    Metadata metadata = 26;
+    int32 unknown27 = 27; // 1
+    string unknown29 = 29;
+    repeated MessageId messageIds = 30;
+    int32 largeContext = 35; // 1
+    int32 unknown38 = 38; // 0
+    int32 chatModeEnum = 46; // 1 for ask, 2 for agent, 3 for edit
+    string unknown47 = 47; 
+    int32 unknown48 = 48; // 0
+    int32 unknown49 = 49; // 0
+    int32 unknown51 = 51; // 0
+    int32 unknown53 = 53; // 0
+    string chatMode = 54;
+  }
+  
+  Request request = 1;
+}
+
+message StreamUnifiedChatWithToolsResponse {
+  message Message {
+    message WebTool {
+      message WebPage {
+        string url = 1;
+        string title = 2;
+        string content = 3;
+      }
+      repeated WebPage webPage = 1;
+    }
+    message Unknown12 {
+      message Content {
+        string content = 1;
+      }
+      Content content = 1;
+    }
+    string content = 1;
+    WebTool webtool = 11;
+    Unknown12 unknown12 = 12;
+    string unknown22 = 22; // uuid
+    string unknown23 = 23;
+    string unknown27 = 27; // uuid
+    MessageThinking thinking = 25;
+  }
+
+  Message message = 2;
+  MessageSummary summary = 3;
+}
