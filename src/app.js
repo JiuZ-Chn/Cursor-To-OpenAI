@@ -10,13 +10,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use(morgan(process.env.MORGAN_FORMAT ?? 'tiny'));
 
-app.use((req, res, next) => {
-  if (!req.headers.authorization && process.env.CURSOR_TOKEN) {
-    req.headers.authorization = `Bearer ${process.env.CURSOR_TOKEN}`;
-  }
-  next();
-});
-
 app.use("/", routes)
 
 app.listen(config.port, () => {
